@@ -1,34 +1,30 @@
 package org.example;
+
+import org.example.util.DatabaseConnection;
+
 import java.sql.*;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
     public static void main(String[] args) {
-        Connection myConn = null;
-        Statement myStamt = null;
-        PreparedStatement myPreredStamt = null;
-
-        ResultSet myRes = null;
 
 
-
-        try {
-            myConn = DriverManager.getConnection("jdbc:postgresql://aws-0-us-west-1.pooler.supabase.com:6543/postgres", "postgres.gzttcynbsfeammiugeig", "HL*#pa3uQG2Ws!B");
+        try (
+                Connection myConn = DatabaseConnection.getInstance();
+                PreparedStatement deleteStmt = myConn.prepareStatement("DELETE FROM employees WHERE first_name = ?");
+                PreparedStatement selectStmt = myConn.prepareStatement("SELECT * FROM employees ORDER BY id ASC");
+        ) {
             System.out.println("Genial, nos conectamos");
-            myStamt = myConn.createStatement();
 
+            // Ejecutar DELETE
+            deleteStmt.setString(1, "Johana");
+            int rowsAffected = deleteStmt.executeUpdate();
+            System.out.println("Filas eliminadas: " + rowsAffected);
 
-            String sql = "INSERT INTO employees(first_name,pa_surname) VALUES (?,?)";
-            myPreredStamt = myConn.prepareStatement(sql);
-
-            myPreredStamt.setString(1,"Johana");
-            myPreredStamt.setString(2,"Dorantes");
-
-            int rowAffected = myPreredStamt.executeUpdate();
-
-            if (rowAffected >0){
-                System.out.println("Se ha creado un nuevo empleado");
+            // Ejecutar SELECT
+            try (ResultSet myRes = selectStmt.executeQuery()) {
+                while (myRes.next()) {
+                    System.out.println(myRes.getString("first_name") + " " + myRes.getString("email"));
+                }
             }
 
         } catch (SQLException e) {
