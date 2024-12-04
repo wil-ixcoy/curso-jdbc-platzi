@@ -10,20 +10,16 @@ import java.util.Optional;
 
 public class EmployeeRepository implements Repository<EmployeeEntity> {
 
-    private Connection myConn;
-
-    public EmployeeRepository(Connection myConn) {
-        this.myConn = myConn;
+    private Connection getConnection() throws SQLException {
+        return DatabaseConnection.getConnection();
     }
-
-
 
 
     @Override
     public List<EmployeeEntity> findAll() throws SQLException {
         List<EmployeeEntity> employees = new ArrayList<>();
 
-        try (Statement myStamt = myConn.createStatement(); ResultSet myRes = myStamt.executeQuery("SELECT * from employees")) {
+        try (Connection myConn = getConnection(); Statement myStamt = myConn.createStatement(); ResultSet myRes = myStamt.executeQuery("SELECT * from employees")) {
             while (myRes.next()) {
                 employees.add(createEmployee(myRes));
             }
@@ -36,7 +32,7 @@ public class EmployeeRepository implements Repository<EmployeeEntity> {
     public EmployeeEntity getById(Integer id) throws SQLException {
 
         EmployeeEntity employee = null;
-        try (PreparedStatement myStamt = myConn.prepareStatement("SELECT * FROM employees WHERE id = ?");) {
+        try (Connection myConn = getConnection(); PreparedStatement myStamt = myConn.prepareStatement("SELECT * FROM employees WHERE id = ?");) {
 
             myStamt.setInt(1, id);
 
@@ -57,7 +53,7 @@ public class EmployeeRepository implements Repository<EmployeeEntity> {
 
         String sql = "INSERT INTO employees (first_name, pa_surname, ma_surname, email, salary, curp) VALUES(?,?,?,?,?,?)";
 
-        try (PreparedStatement myPreStamt = myConn.prepareStatement(sql)) {
+        try (Connection myConn = getConnection(); PreparedStatement myPreStamt = myConn.prepareStatement(sql)) {
 
             myPreStamt.setString(1, employeeEntity.getFirst_name());
             myPreStamt.setString(2, employeeEntity.getPa_surname());
@@ -105,7 +101,6 @@ public class EmployeeRepository implements Repository<EmployeeEntity> {
         }
 
 
-
         if (employeeEntity.getCurp() != null) {
             sqlBuilder.append("curp = ?, ");
             hasUpdates = true;
@@ -120,7 +115,7 @@ public class EmployeeRepository implements Repository<EmployeeEntity> {
 
         String sql = sqlBuilder.toString();
 
-        try (PreparedStatement myPreStamt = myConn.prepareStatement(sql)) {
+        try (Connection myConn = getConnection(); PreparedStatement myPreStamt = myConn.prepareStatement(sql)) {
             int index = 1;
 
             if (employeeEntity.getFirst_name() != null) {
@@ -158,15 +153,15 @@ public class EmployeeRepository implements Repository<EmployeeEntity> {
     public void delete(Integer id) throws SQLException {
 
         String sql = "DELETE FROM employees WHERE id = ?";
-        try (PreparedStatement myPreStamt = myConn.prepareStatement(sql)) {
+        try (Connection myConn = getConnection(); PreparedStatement myPreStamt = myConn.prepareStatement(sql)) {
 
             EmployeeEntity employee = this.getById(id);
 
-            if(employee.getId() == 0){
+            if (employee.getId() == 0) {
                 throw new Error("No se puede eliminar por que no existe el usuario");
             }
 
-            myPreStamt.setInt(1,id);
+            myPreStamt.setInt(1, id);
             myPreStamt.executeUpdate();
         }
     }

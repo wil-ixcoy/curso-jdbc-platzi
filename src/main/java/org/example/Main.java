@@ -11,14 +11,14 @@ import java.util.Optional;
 
 public class Main {
     public static void main(String[] args) throws SQLException {
-        try(Connection myConn = DatabaseConnection.getInstance()){
+        try(Connection myConn = DatabaseConnection.getConnection()){
 
             if(myConn.getAutoCommit()){
                 myConn.setAutoCommit(false);
             }
 
             try{
-                Repository<EmployeeEntity> repository = new EmployeeRepository(myConn);
+                Repository<EmployeeEntity> repository = new EmployeeRepository();
 
                 System.out.println("-----------Insertar nuevo empleado-------------");
                 EmployeeEntity employee = new EmployeeEntity();
@@ -33,6 +33,9 @@ public class Main {
 
                 repository.save(employee);
                 myConn.commit();
+
+                System.out.println("-----------Obtener usuario-------------");
+                System.out.println(repository.getById(2));
 
             } catch (Exception e) {
                 myConn.rollback();
