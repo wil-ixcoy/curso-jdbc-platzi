@@ -7,18 +7,29 @@ public class EmployeeEntity {
     private String ma_surname;
     private String email;
     private Float salary;
+    private String curp;
+
+    public String getCurp() {
+        return curp;
+    }
+
+    public void setCurp(String curp) {
+        this.curp = curp;
+    }
+
 
     public EmployeeEntity(){
 
     }
 
-    public EmployeeEntity(Integer id, Float salary, String email, String ma_surname, String pa_surname, String first_name) {
+    public EmployeeEntity(Integer id, Float salary, String email, String ma_surname, String pa_surname, String first_name,String curp) {
         this.id = id;
         this.salary = salary;
         this.email = email;
         this.ma_surname = ma_surname;
         this.pa_surname = pa_surname;
         this.first_name = first_name;
+        this.curp = curp;
     }
 
     public Integer getId() {

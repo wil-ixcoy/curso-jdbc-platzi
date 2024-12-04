@@ -10,15 +10,20 @@ import java.util.Optional;
 
 public class EmployeeRepository implements Repository<EmployeeEntity> {
 
-    private Connection getConnection() throws SQLException {
-        return DatabaseConnection.getInstance();
+    private Connection myConn;
+
+    public EmployeeRepository(Connection myConn) {
+        this.myConn = myConn;
     }
+
+
+
 
     @Override
     public List<EmployeeEntity> findAll() throws SQLException {
         List<EmployeeEntity> employees = new ArrayList<>();
 
-        try (Statement myStamt = getConnection().createStatement(); ResultSet myRes = myStamt.executeQuery("SELECT * from employees")) {
+        try (Statement myStamt = myConn.createStatement(); ResultSet myRes = myStamt.executeQuery("SELECT * from employees")) {
             while (myRes.next()) {
                 employees.add(createEmployee(myRes));
             }
@@ -31,7 +36,7 @@ public class EmployeeRepository implements Repository<EmployeeEntity> {
     public EmployeeEntity getById(Integer id) throws SQLException {
 
         EmployeeEntity employee = null;
-        try (PreparedStatement myStamt = getConnection().prepareStatement("SELECT * FROM employees WHERE id = ?");) {
+        try (PreparedStatement myStamt = myConn.prepareStatement("SELECT * FROM employees WHERE id = ?");) {
 
             myStamt.setInt(1, id);
 
@@ -50,15 +55,16 @@ public class EmployeeRepository implements Repository<EmployeeEntity> {
     @Override
     public void save(EmployeeEntity employeeEntity) throws SQLException {
 
-        String sql = "INSERT INTO employees (first_name, pa_surname, ma_surname, email, salary) VALUES(?,?,?,?,?)";
+        String sql = "INSERT INTO employees (first_name, pa_surname, ma_surname, email, salary, curp) VALUES(?,?,?,?,?,?)";
 
-        try (PreparedStatement myPreStamt = getConnection().prepareStatement(sql)) {
+        try (PreparedStatement myPreStamt = myConn.prepareStatement(sql)) {
 
             myPreStamt.setString(1, employeeEntity.getFirst_name());
             myPreStamt.setString(2, employeeEntity.getPa_surname());
             myPreStamt.setString(3, employeeEntity.getMa_surname());
             myPreStamt.setString(4, employeeEntity.getEmail());
             myPreStamt.setFloat(5, employeeEntity.getSalary());
+            myPreStamt.setString(6, employeeEntity.getCurp());
 
             int i = myPreStamt.executeUpdate();
 
@@ -98,6 +104,13 @@ public class EmployeeRepository implements Repository<EmployeeEntity> {
             hasUpdates = true;
         }
 
+
+
+        if (employeeEntity.getCurp() != null) {
+            sqlBuilder.append("curp = ?, ");
+            hasUpdates = true;
+        }
+
         if (!hasUpdates) {
             throw new IllegalArgumentException("No se proporcionaron campos para actualizar");
         }
@@ -107,7 +120,7 @@ public class EmployeeRepository implements Repository<EmployeeEntity> {
 
         String sql = sqlBuilder.toString();
 
-        try (PreparedStatement myPreStamt = getConnection().prepareStatement(sql)) {
+        try (PreparedStatement myPreStamt = myConn.prepareStatement(sql)) {
             int index = 1;
 
             if (employeeEntity.getFirst_name() != null) {
@@ -145,7 +158,7 @@ public class EmployeeRepository implements Repository<EmployeeEntity> {
     public void delete(Integer id) throws SQLException {
 
         String sql = "DELETE FROM employees WHERE id = ?";
-        try (PreparedStatement myPreStamt = getConnection().prepareStatement(sql)) {
+        try (PreparedStatement myPreStamt = myConn.prepareStatement(sql)) {
 
             EmployeeEntity employee = this.getById(id);
 
